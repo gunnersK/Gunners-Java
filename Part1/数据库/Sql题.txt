@@ -1,0 +1,21 @@
+1.对于分组内取前几名的问题，可以用group by分组然后用having count()来筛选
+  例题：取部门工资前三高的员工  
+            Employee表：Id Name Salary DepartmentId
+            Department表：Id Name
+	select d.Name Department, e.Name Employee, e.Salary 
+	from Employee e inner join Department d 
+	on e.DepartmentId = d.Id
+	where e.Id in (
+   		 select e1.Id 
+    		from Employee e1 left join Employee e2
+   		 on e1.DepartmentId = e2.DepartmentId and e1.Salary < e2.Salary
+   		 group by e1.Id
+   		 having count(distinct(e2.Salary)) <= 2
+	)
+	order by d.Id asc,e.Salary desc
+     总结：主要是单表内连接的使用，先统计每个员工工资比他高的有多少人，如果人数<=2，
+               说明这个员工的工资就是前三
+     例题来源：https://leetcode-cn.com/problems/department-top-three-salaries/
+
+- 
+

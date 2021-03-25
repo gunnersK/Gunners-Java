@@ -1,0 +1,2 @@
+- 使用utf8mb4代替utf8
+  - 这是mysql的bug，真正的utf8每个字符最多占4个字节，而mysql的utf8只支持每个字符最多占3个字节，后来mysql发布了utf8mb4的字符集，这个才是真正的utf8
