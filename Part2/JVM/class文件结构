@@ -1,0 +1,18 @@
+- Java是跨平台语言，JVM跟Java无关，只跟class文件有关，JVM不看语言，任何语言只要能编译为class文件就可以放到JVM执行，所以JVM是跨语言平台
+- JVM是一种规范，本身就是一款操作系统，有各种实现，hotspot(oracal官方实现)、TaobaoVM(hotspot深度定制版)
+- JVM < JRE < JDK  
+- 每种文件开头都会有特定标识，class文件开头是CA FE BA BE
+
+### class文件结构
+
+- magic：CA FA BA BE
+- minor version：class文件的版本号：00 00
+- major version：class文件的版本号：00 34
+- constant_pool_count：常量池长度
+- constant_pool：长度为constant_pool_count - 1的表
+- 观察字节码的方法 
+  - javap类文件路径(Java自带命令)
+  - idea插件：jclasslib
+- **对class文件做过深入研究，了解class文件详细 信息**
+- 常量池关键在于后面的东西都是去引用他的
+
