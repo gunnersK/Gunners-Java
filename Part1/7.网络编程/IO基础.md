@@ -314,15 +314,39 @@ lrwx------ 1 root root 64 Apr 14 18:55 8 -> socket:[137756658]
 
 - Page Cache是内核维护的一个中间层，用来优化IO性能
 
-  但由于在程序和磁盘间挡了一层，会产生一致性和可靠性的问题
+  优先使用内存，减少硬件IO调用
 
+  但由于在程序和磁盘间挡了一层，会产生一致性和可靠性的问题
+  
   若Page Cache刷进磁盘不及时，断电就会丢数据
+  
+  **OS没有绝对的数据可靠性**
+  
+  即便为了可靠性，调成最慢的方式，单点问题也会严重损耗性能。解决方式：主从复制，准备HA
 
 两个进程访问同一份数据，是使用OS维护的同一份page，这是OS的内存优化。否则每个进程都得到磁盘把数据加载到内存 
 
 - Page Cache上面一层才是所谓的程序IO
+
 - Page Cache和page不是一个东西
-- **06-0020** 内存写进磁盘的阈值，关联到redis持久化（aop），mysql调优binlog、unlog、relog级别。内存淘汰lru
+
+- **06-0020** 内存写进磁盘的阈值，关联到redis持久化（aop），mysql调优binlog、unlog、relog级别。
+
+  ```shell
+  # 内核脏页参数
+  sysctl -a | grep dirty
+  
+  vm.dirty_background_bytes = 0
+  #后台阈值，达到阈值在后台把脏页写进磁盘，再写则触发LRU
+  vm.dirty_background_ratio = 10  
+  vm.dirty_bytes = 0
+  # 前台阈值，达到阈值把脏页阻塞写进磁盘，程序不能往内存写了，再写则触发LRU
+  vm.dirty_ratio = 30  
+  # 脏页存活时长
+  vm.dirty_expire_centisecs = 3000
+  vm.dirty_writeback_centisecs = 500
+  
+  ```
 
 - Java尽量使用Buffer流来进行IO操作，是应用缓冲来减少系统调用（write函数）的损耗
 
@@ -354,9 +378,3 @@ lrwx------ 1 root root 64 Apr 14 18:55 8 -> socket:[137756658]
 但需要程序自己维护一致性、dirty等一系列复杂问题
 
 DB一般会使用直接IO
-
-上回看到：
-
-**06-0020** 内存写进磁盘的阈值
-
-07-003000 直接IO
