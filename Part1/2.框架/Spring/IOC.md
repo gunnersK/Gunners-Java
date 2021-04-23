@@ -40,3 +40,18 @@ BeanFactory
 
 运用观察者模式：监听器、监听事件、多播器
 
+
+
+#### 启动流程
+
+setConfigLocations()
+
+创建环境对象、处理ClassPathXmlApplicationContext传入字符串的占位符，保存在configLocations数组成员变量中
+
+- 设置配置文件路径到成员变量
+
+
+
+**先重点看配置文件解析为beanDefinition和对象初始化两部分**
+
+**然后看aop和springmvc和springboot**
