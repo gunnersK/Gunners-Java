@@ -55,3 +55,5 @@ setConfigLocations()
 **先重点看配置文件解析为beanDefinition和对象初始化两部分**
 
 **然后看aop和springmvc和springboot**
+
+04-0046
