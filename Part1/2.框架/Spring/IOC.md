@@ -34,8 +34,6 @@ BeanFactory
 
 #### 获取刷新bean工厂
 
-
-
 如何在不用阶段处理不同的工作？
 
 运用观察者模式：监听器、监听事件、多播器
@@ -56,4 +54,4 @@ setConfigLocations()
 
 **然后看aop和springmvc和springboot**
 
-04-0046
+01-0952：读取配置文件输入流，接下来进行解析
