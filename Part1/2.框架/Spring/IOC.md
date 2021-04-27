@@ -54,4 +54,4 @@ setConfigLocations()
 
 **然后看aop和springmvc和springboot**
 
-01-0952：读取配置文件输入流，接下来进行解析
+05-015317：解析完bean标签基本属性，对bean标签其他属性进行详细解析 -> 然后给beanDefinition的className和parent属性设置完成，接下来是设置beanDefinition的其他属性
