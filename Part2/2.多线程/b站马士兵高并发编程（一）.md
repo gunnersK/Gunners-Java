@@ -12,7 +12,7 @@
    1. synchronized
    
       1. synchronized方法被一个线程执行时，其他线程可以执行非synchronized方法，不需要那把锁，不影响
-   
+      
       2. synchronized锁定的是对象，不是代码
       
       3. 如果用synchronized修饰一个成员方法，那他锁住的是this；如果修饰一个static方法，那个锁住的是该类的class对象
@@ -124,7 +124,7 @@
             }
          }
       ```
-   
+
 # 二、什么是原子性   
 
    1. 定义：一个操作或者多个操作 要么全部执行并且执行的过程不会被任何因素打断，要么就都不执行
@@ -151,70 +151,6 @@
          ```
          解析：a的get()方法和a.addAndGet()方法具有原子性，但是凑在一起就不构成原子性了，因为有可能当线程a判断if的a.get()为99时，还没来得及执行a.addAndGet()，线程b就插进来执行if的a.get()了这时候线程b获得的a.get()也是99，接下来也会执行a.addAndGet()，这时有可能是线程a/b先执行a.addAndGet方法，就假设线程a先执行，执行完后变量a更新进主内存，接下来轮到线程b执行a.addAndGet方法，这时他在主内存拿到的a变量已经是100了，但因为之前已经判断过if里面的a.get()<100了，所以还是会执行a.addAndGet()，再刷进主内存，这时a的值就是101了，出错了
 
-# 三、volatile
-
-   1. 作用：当多个线程访问同一个变量时，一个线程修改了这个变量的值，其他线程能够立即看得到修改的值。
-   
-   2. volatile如何实现保证可见性
-   
-      代码：
-   
-      ```
-         public class T {
-          /*volatile*/ boolean flag = true;
-
-          void m(){
-            while(flag){}
-            System.out.println("end");
-          }
-
-          public static void main(String[] args) {
-            final T t = new T();
-            new Thread(new Runnable(){
-              @Override
-              public void run() {
-                t.m();
-              }
-            }).start();
-            try {
-              Thread.sleep(10);
-            } catch (InterruptedException e) {
-              e.printStackTrace();
-            }
-            t.flag = false;
-          }
-        }
-      ```
-      1. 解析：
-         
-         每个线程都有自己的一个内存区域，然后多个线程跟主内存进行交互，对象也放在主内存里面，每个线程都有一个缓存区，线程操作主内存的对象中的变量时，是把变量从主内存拷贝一份放到自己的缓存区进行修改，改完了再写回去主内存，接下来看上面的代码：
-      
-         main方法里起一个线程a执行m()方法，这个线程先把flag从主内存读到缓存区中，然后判断flag，因为这时候flag==true，所以是死循环，这种情况下cpu很忙，腾不出时间来从主内存获取最新的flag的值，所以当main线程把t.flag更新为false时，那个线程没有从主内存获取最新的flag，一直还是用那个最初的flag值去判断，就跳不出循环，线程就不能结束了
-         
-         1. 如果在while循环里面写一个System.out输出语句，这样在while循环执行期间，cpu可能会有一段空闲去主内存读取最新的flag值，就有可能读到被main线程修改过的flag，就有可能跳出循环
-         
-      2. 如果用volatile会发生什么
-      
-         1. 使用volatile关键字会**强制**将修改的值立即写入**主存**，在线程main修改flag值时，包括2个操作，修改main线程工作内存中的值，然后将修改后的值写入主存，这样的修改会使得线程a的工作内存中缓存变量flag的缓存行无效（反映到硬件层的话，就是CPU的L1或者L2缓存中对应的缓存行无效），然后线程a读取时，发现自己的缓存行无效，它会等待缓存行对应的主存地址被更新之后，然后去对应的主存读取最新的值。
-         
-   3. volatile和synchronized的区别
-
-      1. synchronized既有可见性，又有原子性，而volatile只保证可见性，不能保证多个线程共同修改变量时所带来的不一致问题，不能代替synchronized
-
-      2. synchronized效率比volatile低不少，所以只需要保证可见性的时候就不要用synchronized
-
-      3. volatile不能保证原子性的例子：
-
-         1. 两个线程操作volatile变量v，线程a拿到变量v给加到10，刷进主存，线程b开始运行，这时它在主存拿到v，拷贝到缓存区，v的值是10，然后给他加到20，然后写回去，但是在他写回去主内存之前，线程a已经把v加到30，也已经写到主内存了，这时线程b把v(值是20)写进主内存的时候就会把30覆盖掉，因为：
-
-            1. 线程b从缓存区读取v的动作发生在线程a把v=30更新进主存之前，所以不会导致他的缓存行失效，所以线程b就直接在缓存区拿v了，加到20再写主存
-
-            2. 写进主存时是不会判断主内存中v的值还是不是最初他从主内存中拿v时候的值的，所以说volatile只能保证可见性，不能保证原子性
-
-            3. **总结：** 在一个线程尚未完成把修改的volatile变量 **更新进主存之前**，另一个线程**已经获得**该volatile变量的值，并且做出修改，那就会出现不能保证原子性的情况
-
-            3. 这种情况就要使用synchronized了，先让线程a把v加完到30，线程b再操作 三个程序12-14
-            
 # 四、wait/notify
 
    1. 线程之间通信用的，wait释放锁，notify不释放锁，所以wait必须在synchronized代码块里面调用
@@ -224,7 +160,7 @@
    3. wait/notify能完成的很多，但是能不要用就不要用，太麻烦，需要非常小心，在多线程中用就相当于用汇编在编程一样
    
    4. 永远使用notifyAll，不要使用notify
-   
+
 # 五、CountDownLatch
 
    1. 就是一个门闩，await()方法相当于上门闩，给一个初始值，每调用一次countDown()方法值减1，当初始值变为0时，门闩打开
