@@ -55,7 +55,7 @@
 
           }
           ```
-	  
+	
    2. tryLock
    
       1. 线程可以指定在等一把锁多长时间后就不等了，继续执行，而不是一直像synchronized一样阻塞在那里等，体现了比synchronized灵活的地方
@@ -82,7 +82,7 @@
                 }
           }
          ```
-	 
+	
    3. lockInterruptibly      
    
       1. 使用lock方法时，如果没得到锁，他就一直阻塞在那里，別的线程调用它的interrupt方法也没办法中断该线程
@@ -146,12 +146,12 @@
                }
 
           }
-         ```	 
-	 
+         ```
+	
    4. ReentrantLock可以指定为公平锁，即哪个线程等的时间长，就能得到锁
    
       1. 代码
-   
+      
          ```
             public class ReentrantLock4 {
 	
@@ -184,21 +184,21 @@
 
 			}
          ```
-	 
+	
       2. 上面代码的执行结果一般都是线程1执行一次，紧接着线程2执行一次，然后又是线程1，然后线程2....一直到for循环结束
       
    5. ReentrantLock和synchronized的区别
   
       1. **为什么synchronized有一对大括号把代码括起来而lock没有？** 
-     
-         1. 必须再次强调一遍：synchronized是锁的对象，而不是锁代码，只是说synchronized把锁住对象之后要干的活丢到括号里面，所以会有他锁的是代码的错觉。那为什么要把代码丢到括号里呢？因为jvm在synchronized修饰的代码跑完之后会自动释放锁，所以需要知道他代码什么时候跑完，所以需要括号把代码括起来。
         
+         1. 必须再次强调一遍：synchronized是锁的对象，而不是锁代码，只是说synchronized把锁住对象之后要干的活丢到括号里面，所以会有他锁的是代码的错觉。那为什么要把代码丢到括号里呢？因为jvm在synchronized修饰的代码跑完之后会自动释放锁，所以需要知道他代码什么时候跑完，所以需要括号把代码括起来。
+          
          2. 再看看lock，一样也是锁住对象，但是jvm不会像synchronized一样在代码跑完之后帮你释放锁，所以他必须手动释放锁，所以lock也就不需要像synchronized一样定义要跑的代码，就不用花括号包代码，如果硬要类比于synchronized的花括号里的代码，个人理解：在lock.lock和unlock之间执行的代码就相当于synchronized花括号中的代码。
-     
+          
          3. 这里关注的是锁，而不是代码，因为synchronized有修饰代码范围，所以学lock的时候很容易产生理解上的偏差，把重点跑到代码去，其实应该关注的重点是拿没拿到这把锁
 
       2. ReentrantLock可以替代synchronized，可以完成他的功能。
-     
+        
       3. ReentrantLock比synchronized灵活（tryLock）
       
       4. synchronized默认是不公平锁，ReentrantLock可以指定公平锁      
@@ -215,71 +215,74 @@
    
    5. 代码：面试题：写一个固定容量的同步容器，拥有put和get方法，能支持2个生产者线程和10个消费者线程的阻塞调用
    
-      ```
-         public class MyContainer1<T> {
-
-			final private List<T> list = new ArrayList<>();
-
-			synchronized void put(T t){
-				while(list.size() == 10){
-					try {
-						this.wait();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-
-				list.add(t);
-				System.out.println(Thread.currentThread().getName()+" put--"+list.size());
-				this.notifyAll();
-			}
-
-			synchronized T get(){	
-				while(list.size() == 0){
-					try {
-						this.wait();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-
-				T t = list.get(list.size() - 1);
-				list.remove(t);
-				System.out.println(Thread.currentThread().getName()+" get--"+list.size());
-				this.notifyAll();
-
-				return t;
-			}
-
-			public static void main(String[] args) {
-				MyContainer1<String> mc = new MyContainer1<>();
-
-				for(int i = 0; i < 10; i++){
-					new Thread(new Runnable() {
-						public void run() {
-							for(int j = 0; j < 5; j++){
-								mc.get();
-							}
-						}
-					}, "c"+i).start();
-				}
-
-				for(int i = 0; i < 2; i++){
-					new Thread(new Runnable() {
-						public void run() {
-							for(int j = 0; j < 25; j++){
-								mc.put(Thread.currentThread().getName());
-							}
-						}
-					}, "p"+i).start();
-				}
-			}
-		}
+      ```java
+      // wait/notify版本  
+public class MyContainer1<T> {
+	
+    final private List<T> list = new ArrayList<>();
+	
+	    synchronized void put(T t){
+	        while(list.size() == 10){
+	            try {
+	                this.wait();
+	            } catch (InterruptedException e) {
+	                e.printStackTrace();
+	            }
+        }
+	
+	        list.add(t);
+	        System.out.println(Thread.currentThread().getName()+" put--"+list.size());
+	        this.notifyAll();
+    }
+	
+	    synchronized T get(){	
+	        while(list.size() == 0){
+	            try {
+	                this.wait();
+	            } catch (InterruptedException e) {
+	                e.printStackTrace();
+	            }
+        }
+	
+	        T t = list.get(list.size() - 1);
+	        list.remove(t);
+	        System.out.println(Thread.currentThread().getName()+" get--"+list.size());
+        this.notifyAll();
+	
+	        return t;
+    }
+	
+	    public static void main(String[] args) {
+        MyContainer1<String> mc = new MyContainer1<>();
+	
+	        for(int i = 0; i < 10; i++){
+	            new Thread(new Runnable() {
+	                public void run() {
+	                    for(int j = 0; j < 5; j++){
+	                        mc.get();
+	                    }
+	                }
+	            }, "c"+i).start();
+        }
+	
+	        for(int i = 0; i < 2; i++){
+	            new Thread(new Runnable() {
+	                public void run() {
+	                    for(int j = 0; j < 25; j++){
+	                        mc.put(Thread.currentThread().getName());
+	                    }
+	                }
+	            }, "p"+i).start();
+	        }
+	    }
+      }
+      
+      //Condition版本
       ```
       
 # 三、Condition      
   （二）04
-  
+
 # 四、ThreadLocal--线程本地变量
 
    1. 线程私有的变量，可以看做每个线程从主内存复制一份变量下来，自己改，不会影响到其他线程的变量，效率较高
@@ -317,4 +320,4 @@
 			}
 		}
       ```
-     
+
