@@ -54,4 +54,12 @@ setConfigLocations()
 
 **然后看aop和springmvc和springboot**
 
-05看完
+07-0059
+
+看到prepareBeanFactory()的添加属性编辑器注册对象（可自定义扩展）
+
+然后直接跳到finishBeanFactoryInitialization()深层注册属性编辑器
+
+org.springframework.beans.support.ResourceEditorRegistrar#registerCustomEditors
+
+扩展要继承一个类，实现一个接口，记在processon两句话
