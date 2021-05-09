@@ -70,7 +70,7 @@ org.springframework.beans.support.ResourceEditorRegistrar#registerCustomEditors
 
 自定义一个继承PropertyEditorSupport类的编辑器
 
-让Spring能够识别到此编辑器，需要自定时一个实现PropertyEditorRegistrar接口的属性编辑器注册器
+让Spring能够识别到此编辑器，需要自定义一个实现PropertyEditorRegistrar接口的属性编辑器注册器
 
 让Spring能够识别到对应的注册器
 
