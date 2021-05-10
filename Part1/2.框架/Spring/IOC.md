@@ -76,4 +76,12 @@ org.springframework.beans.support.ResourceEditorRegistrar#registerCustomEditors
 
 看到手动实现以上流程，selfEditor.xml定义CustomEditorConfigurer，new容器使用这个xml文件
 
-012600
+
+
+#### BeanFactoryPostProcessor
+
+如果想在Spring中做任意扩展，唯一需要获取的对象就是BeanFactory，可以对里面的任意东西做更改
+
+如果需要修改BeanFactory中的属性，可以通过实现BeanFactoryPostProcessor接口来修改
+
+看到004400  自定义MyClassPathXmlApplicationContext和MyBeanFactoryPostProcessor，重写customizeBeanFactory方法将MyBeanFactoryPostProcessor加进去
