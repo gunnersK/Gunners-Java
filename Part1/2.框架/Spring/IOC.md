@@ -85,3 +85,14 @@ org.springframework.beans.support.ResourceEditorRegistrar#registerCustomEditors
 如果需要修改BeanFactory中的属性，可以通过实现BeanFactoryPostProcessor接口来修改
 
 看到004400  自定义MyClassPathXmlApplicationContext和MyBeanFactoryPostProcessor，重写customizeBeanFactory方法将MyBeanFactoryPostProcessor加进去
+
+- 自定义BeanFactoryPostProcessor：新建MyBeanFactoryPostProcessor实现BeanFactoryPostProcessor
+
+- 自定义ApplicationContext：创建MyClassPathXmlApplicationContext继承ClassPathXmlApplicationContext
+- 重写customizeBeanFactory，调用父类addBeanFactoryPostProcessor添加之前自定义的MyBeanFactoryPostProcessor
+
+看到08-010915  invoke beanFactoryPostProcessors
+
+
+
+看完04/05/06
