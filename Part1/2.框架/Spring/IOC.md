@@ -74,7 +74,7 @@ org.springframework.beans.support.ResourceEditorRegistrar#registerCustomEditors
 
 让Spring能够识别到对应的注册器
 
-看到手动实现以上流程，selfEditor.xml定义CustomEditorConfigurer，new容器使用这个xml文件
+看到手动实现以	上流程，selfEditor.xml定义CustomEditorConfigurer，new容器使用这个xml文件
 
 
 
