@@ -1,5 +1,0 @@
-- CAS （campare and swap）
-
-	- 
-- 
-
