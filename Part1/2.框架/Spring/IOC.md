@@ -91,8 +91,16 @@ org.springframework.beans.support.ResourceEditorRegistrar#registerCustomEditors
 - 自定义ApplicationContext：创建MyClassPathXmlApplicationContext继承ClassPathXmlApplicationContext
 - 重写customizeBeanFactory，调用父类addBeanFactoryPostProcessor添加之前自定义的MyBeanFactoryPostProcessor
 
-看到08-010915  invoke beanFactoryPostProcessors
+
+
+#### ConfigurationClassPostProcessor
+
+在xml配置文件中用component:scan开启注解扫描时，Spring会自动注入IntenalConfiguration，他会指向ConfigurationClassPostProcessor
 
 
 
-看到08（1）012346
+注解作用原理
+
+判断metadata是否接口，或candidateIndicators，或是否有@Bean标注的方法
+
+看到10-0036
