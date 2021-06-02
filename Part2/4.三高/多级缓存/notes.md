@@ -11,3 +11,12 @@
   Nginx+Lua性能高是因为Nginx性能高，不是Lua本身性能高
 
 - Lua是C语言实现的，是胶水语言，可以把不同的异构项目连接起来
+
+
+
+#### 多级缓存
+
+- 先把大量请求分摊给各地CDN
+- CDN找不到到Nginx找（Nginx可以基于Lua脚本做本地缓存，可提前把数据放到Nginx中缓存）
+- Nginx找不到，通过Nginx的Lua脚本给Redis集群发送请求找
+- Redis找不到，由Nginx的Lua脚本直接转发请求到应用服务器走数据库找
