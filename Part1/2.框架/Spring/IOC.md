@@ -93,14 +93,22 @@ org.springframework.beans.support.ResourceEditorRegistrar#registerCustomEditors
 
 
 
-#### ConfigurationClassPostProcessor
-
-在xml配置文件中用component:scan开启注解扫描时，Spring会自动注入IntenalConfiguration，他会指向ConfigurationClassPostProcessor
-
-
+#### ConfigurationClassPostProcessor实现BeanFactoryPostProcessor
 
 注解作用原理
 
-判断metadata是否接口，或candidateIndicators，或是否有@Bean标注的方法
+在xml配置文件中用component:scan开启注解扫描时，Spring会自动注入IntenalConfiguration，他会指向ConfigurationClassPostProcessor，用来识别和解析注解]
 
-看到10-0036
+以递归的方式解析注解
+
+
+
+#### Condition接口
+
+自定义实现Condition接口，可放在@Bean定义的Bean上面，当Bean符合自定义的Condition条件才加载
+
+
+
+循环依赖：Spring创建对象分为实例化和初始化两个过程，通过把已实例化但未初始化的对象提前暴露出去来实现
+
+11-0042
