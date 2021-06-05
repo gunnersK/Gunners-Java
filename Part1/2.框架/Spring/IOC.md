@@ -111,4 +111,8 @@ org.springframework.beans.support.ResourceEditorRegistrar#registerCustomEditors
 
 循环依赖：Spring创建对象分为实例化和初始化两个过程，通过把已实例化但未初始化的对象提前暴露出去来实现
 
-11-0042
+
+
+尽管能听懂看懂但是很难表述出来，就准备好面试常问的几个面试题，面试回答这些题的时候带上源码里的关键字，比如类名方法名，带上细节的东西，体现真实性
+
+11-014458
