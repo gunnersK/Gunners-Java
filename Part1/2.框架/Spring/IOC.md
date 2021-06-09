@@ -97,7 +97,7 @@ org.springframework.beans.support.ResourceEditorRegistrar#registerCustomEditors
 
 注解作用原理
 
-在xml配置文件中用component:scan开启注解扫描时，Spring会自动注入IntenalConfiguration，他会指向ConfigurationClassPostProcessor，用来识别和解析注解]
+在xml配置文件中用component:scan开启注解扫描时，Spring会自动注入IntenalConfiguration，他会指向ConfigurationClassPostProcessor，用来识别和解析注解
 
 以递归的方式解析注解
 
