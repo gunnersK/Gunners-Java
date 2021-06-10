@@ -115,4 +115,23 @@ org.springframework.beans.support.ResourceEditorRegistrar#registerCustomEditors
 
 尽管能听懂看懂但是很难表述出来，就准备好面试常问的几个面试题，面试回答这些题的时候带上源码里的关键字，比如类名方法名，带上细节的东西，体现真实性
 
-11-014458
+
+
+#### 实例化bean
+
+getBean() -> doGetBean() -> createBean() -> doCreateBean()
+
+实例化之前，有些对象已经实例化好了，无需重复实例化，在beanFactory对象的singletonObjects中
+
+##### BeanFactory和FactoryBean
+
+BeanFactory和FactoryBean都是用来创建对象
+
+FactoryBean可以跳过BeanFactory的复杂的对象流程（实例化、初始化、invokeAwareMethod、invokeInitMethod等），以更加简单便捷的方式创建
+
+FactoryBean提供了三个方法：getObject、getObjectType、isSingleton
+
+只需自己实现FactoryBean接口，重写三个方法即可
+
+13-0200：自己实现FactoryBean接口
+
