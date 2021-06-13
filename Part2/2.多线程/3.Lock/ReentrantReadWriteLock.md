@@ -41,3 +41,6 @@ public static void main(String[] args) {
 
 ​      
 
+归纳下读写锁的实现，根据AQS的模板来理解
+
+有空再分析下CountDownLatch和Semaphore还有Condition的

@@ -12,10 +12,20 @@ AbstractQueuedSynchronizer  抽象队列同步器，基于模板模式的**锁�
 
 ## 方法
 
-|      | 获取同步状态  | 可中断获取同步状态         | try获取同步状态            | 释放          | try释放                    |
-| ---- | ------------- | -------------------------- | -------------------------- | ------------- | -------------------------- |
-| 独占 | acquire       | acquireInterruptibly       | tryAcquire(模板方法)       | release       | tryRelease(模板方法)       |
-| 共享 | acquireShared | acquireSharedInterruptibly | tryAcquireShared(模板方法) | releaseShared | tryReleaseShared(模板方法) |
+|      | 设置同步状态  | try设置同步状态(模板方法) | 可中断设置同步状态         | 释放          | try释放(模板方法) |
+| ---- | ------------- | ------------------------- | -------------------------- | ------------- | ----------------- |
+| 独占 | acquire       | tryAcquire                | acquireInterruptibly       | release       | tryRelease        |
+| 共享 | acquireShared | tryAcquireShared          | acquireSharedInterruptibly | releaseShared | tryReleaseShared  |
+
+非模板方法都是**可复用**的逻辑，供各种锁使用
+
+模板方法则由各子类做不同实现
+
+**在各种锁中调用AQS可复用的非模板方法，再在其中调用各子类的实现的模板方法**
+
+结合ReentrantLock的lock、lockInterruptibly、tryLock理解
+
+所有跟AQS相关的锁都是基于这套模板来实现的
 
 
 
@@ -33,10 +43,11 @@ AbstractQueuedSynchronizer  抽象队列同步器，基于模板模式的**锁�
   >
   > CountDownLatch实现：设置state初始值为x，每次 -1直到0
 
-- 等待队列头尾节点指针
+- 等待队列头尾Node节点指针
 
-  >双向链表，每个node保存的是线程
-  >双向是因为加入队列添加节点时需要考虑前面节点的状态，如果前面节点正在持有线程，新节点就排在他后面，若前面节点被取消了就应该越过前面的节点
+  >与这个锁对象相关联的所有线程组成的队列的头尾节点
+  >
+  >双向链表，双向是因为加入队列添加节点时需要考虑前面节点的状态，如果前面节点正在持有线程，新节点就排在他后面，若前面节点被取消了就应该越过前面的节点
   >
   >`还不是很理解双向的原因`
 
@@ -63,19 +74,19 @@ AbstractQueuedSynchronizer  抽象队列同步器，基于模板模式的**锁�
 
 ## acquire
 
-即独占锁获取同步状态流程
+即独占式获取同步状态流程，**整个AQS上锁的基础流程**，重点掌握
 
-> !tryAcquire() -- 尝试获取同步状态，即获取state变量
+> tryAcquire() -- 尝试设置同步状态，即设置state变量（各子类不同实现）
 >
-> 若同步状态获取失败，调用addWaiter()方法构造Node，以CAS的形式插到同步队列队尾
+> 若同步状态获设置失败，调用addWaiter()方法构造Node，以CAS的形式插到同步队列队尾
 >
-> 再调用acquireQueued()死循环判断前驱节点是否队头元素，是就继续tryAcquire()，获取同步状态
+> 再调用acquireQueued()死循环判断前驱节点是否队头节点，是就继续tryAcquire()，获取同步状态
 >
-> 若前驱节点非队头元素或获取同步状态失败，则调用LockSupport.park()阻塞当前线程
+> 若前驱节点非队头节点，或是队头节点但获取同步状态失败，则调用LockSupport.park()阻塞当前线程
 >
-> 直到前驱节点出队将其唤醒，或阻塞线程被中断将其唤醒 `中断唤醒这里不理解`
+> 直到前驱节点出队将其唤醒，或阻塞线程被中断将其唤醒 
 
-<img src="D:\Learning\Gunners-Java\Part2\2.多线程\pic\AQS框架原理.jpg" style="zoom:80%; float:left" />
+<img src="..\pic\AQS框架原理.jpg" style="zoom:80%; float:left" />
 
 当锁被某个线程持有，修改state值，修改state是CAS操作，加锁线程变量值改成自己
 

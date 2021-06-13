@@ -135,3 +135,14 @@ FactoryBean提供了三个方法：getObject、getObjectType、isSingleton
 
 13-0200：自己实现FactoryBean接口
 
+
+
+#### FactoryBean
+
+自定义类实现FactoryBean接口，在重写的getObject方法中返回对象
+
+那么，实现了FactoryBean接口的子类对象，和getObject方法中返回的对象都归Spring管理
+
+但是存放对象的缓存集合不同
+
+实现了FactoryBean接口的子类对象在一级缓存，getObject方法中返回的对象在factoryBeanObjectCache

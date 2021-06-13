@@ -14,6 +14,8 @@
 
 实现Lock接口
 
+**lock和lockInterruptibly等方法都是使用AQS中可复用的方法，也会使用到tryAcquire()模板方法公平锁、非公平锁的实现**
+
 #### 结构
 
 基于AQS实现
@@ -24,21 +26,25 @@
 
 
 
-#### 公平锁原理
+#### tryAcquire()实现
 
-每个线程调用tryAcquire()获取同步状态时
+##### 公平锁
 
-会先调用hasQueuedPredecessors()方法判断当前同步队列中有没有比自己先进入等待状态的线程
+当state变量不等于0时，判断是否为当前线程的锁重入操作，否则返回false
 
-有他只能进入等待队列排队，直到被唤醒
+当state变量等于0，即当前没线程占有锁时
+
+会先调用hasQueuedPredecessors()方法，判断当前同步队列中有没有比自己先进入等待状态的线程
+
+有则返回加锁失败，进入等待队列
 
 没有就直接CAS设置state变量
 
 
 
-#### 非公平锁原理
+##### 非公平锁
 
-非公平锁的tryAcquire()方法获取同步状态时，少了公平锁hasQueuedPredecessors()的判断
+少了公平锁hasQueuedPredecessors()的判断，其他没区别
 
 Q：那么非公平锁不就和AQS同步队列FIFO性质冲突了吗？
 
@@ -84,6 +90,40 @@ current == getExclusiveOwnerThread()  判断独占锁是否被当前线程持有
 
 
 
+#### lock
+
+lock走的就是AQS独占模式的acquire()方法
+
+
+
+#### lockInterruptibly
+
+调用AQS的acquireInterruptibly()方法
+
+接下来在整体上就是走了AQS的acquire()逻辑（看上面流程图）
+
+tryAcquire()失败就加入同步队列，就进入死循环操作
+
+当前一个节点不是头结点，阻塞被唤醒之后，若判断到当前线程被中断，直接抛出中断异常（即响应中断）
+
+带响应中断的获取同步状态代码：
+
+```java
+for (;;) {
+    final Node p = node.predecessor();
+    if (p == head && tryAcquire(arg)) {
+        setHead(node);
+        p.next = null; // help GC
+        return;
+    }
+    if (shouldParkAfterFailedAcquire(p, node) &&
+        parkAndCheckInterrupt())
+        throw new InterruptedException();  //抛中断异常，响应中断
+}
+```
+
+
+
 #### tryLock原理
 
 - tryLock() -- 尝试锁，锁失败**不会入队尾**等待，直接返回false
@@ -94,7 +134,7 @@ current == getExclusiveOwnerThread()  判断独占锁是否被当前线程持有
 
   调用抽象静态内部类Sync的tryAcquireNanos()方法
 
-  接下来在整体上就是走了AQS的acquire()逻辑（看上面流程图），只不过多了等待时间判断
+  接下来在整体上就是走了AQS的acquire()逻辑（看acquire流程图），只不过多了等待时间判断
 
   在tryAcquire()失败加入同步队列之前，会根据当前时间 + 指定的等待时间，算出等待超时时间
 
@@ -137,30 +177,4 @@ current == getExclusiveOwnerThread()  判断独占锁是否被当前线程持有
   ```
 
   
-
-#### lockInterruptibly原理
-
-调用AQS的acquireInterruptibly()方法
-
-接下来在整体上就是走了AQS的acquire()逻辑（看上面流程图）
-
-tryAcquire()失败就加入同步队列，就进入死循环操作
-
-当前一个节点不是头结点，阻塞被唤醒之后，若判断到当前线程被中断，直接抛出中断异常（即响应中断）
-
-带响应中断的获取同步状态代码：
-
-```java
-for (;;) {
-    final Node p = node.predecessor();
-    if (p == head && tryAcquire(arg)) {
-        setHead(node);
-        p.next = null; // help GC
-        return;
-    }
-    if (shouldParkAfterFailedAcquire(p, node) &&
-        parkAndCheckInterrupt())
-        throw new InterruptedException();  //抛中断异常，响应中断
-}
-```
 
