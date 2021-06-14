@@ -146,3 +146,7 @@ FactoryBean提供了三个方法：getObject、getObjectType、isSingleton
 但是存放对象的缓存集合不同
 
 实现了FactoryBean接口的子类对象在一级缓存，getObject方法中返回的对象在factoryBeanObjectCache
+
+Spring会调用FactoryBean接口的子类对象的getObject方法来返回对象
+
+14-0204
