@@ -149,4 +149,13 @@ FactoryBean提供了三个方法：getObject、getObjectType、isSingleton
 
 Spring会调用FactoryBean接口的子类对象的getObject方法来返回对象
 
-14-0204
+
+
+#### 注解IOC
+
+AnnotationConfigApplicationContext中的scan方法将注解包装为BeanDefinition放进BeanFactory
+
+在构造方法中调用refresh方法
+
+15拉完
+
