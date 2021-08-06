@@ -1,4 +1,30 @@
+## 缓存与DB读写模式
+
+#### Cache-Aside Pattern
+
+- 双写读数据流程
+
+  <img src=".\pic\双写读数据流程.jpg" style="zoom:80%; float:left" />
+
+
+
+- 双写更新数据流程
+
+  <img src=".\pic\双写更新数据流程.jpg" style="zoom:80%; float:left" />
+
+
+
+
+
+
+
+
+
 ## 缓存和DB双写不一致
+
+<img src=".\pic\\双写不一致时序图.jpg" style="zoom:80%; float:left" />
+
+
 
 - 先删缓存，再更新DB，再写缓存，高并发会出问题
 - 将读写请求都路由到JVM的内存队列中
