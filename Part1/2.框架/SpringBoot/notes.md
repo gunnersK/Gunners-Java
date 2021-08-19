@@ -23,3 +23,26 @@ https://juejin.cn/post/6844904009577267207
 - 在延迟加载时，会通过getImports()方法，在里面获取AutoConfigurationEntry对象
 - 用entry对象调用getCandidateConfigurations()方法，此时就能把配置文件中对应的属性值加载回来，以完成自动装配
 
+
+
+
+
+####  开箱即用
+
+- 项目需要的配置都先写好放在一个个的配置类中，类路径定义在META-INF/spring.factories文件中
+
+- @Import注解会导入AutoConfigurationImportSelector类，会到META-INF/spring.factories文件中把所有配置类全部加载进来
+
+
+
+#### 约定大于配置
+
+约定好配置文件的名称、路径
+
+
+
+#### 配置文件属性自动注入
+
+- 配置类中打@ConfigurationProperties注解，里面定义配置前缀，比如a.b，以及定义属性field
+- 在yml等配置文件定义前缀a.b+属性名field并赋值，完成属性field注入
+- 利用这个功能可以注入springboot自带配置类的属性，比如修改服务器默认端口属性啥的
