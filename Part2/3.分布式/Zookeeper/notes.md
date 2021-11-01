@@ -1,1 +1,1 @@
-![zk特征](D:\Learning\Gunners-Java\Part2\3.分布式\Zookeeper\pic\zk特征.jpg)
+![zk特征](.\pic\zk特征.jpg)
