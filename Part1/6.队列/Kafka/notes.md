@@ -8,9 +8,7 @@
 
 - offset
 
-  早期Kafka将offset直接维护在ZK中，但ZK是分布式协调工具，同时用来存储数据性能差
-
-  就出现了一个过渡方案，将offset放第三方，比如Redis/MySQL等
+  早期Kafka将offset直接维护在ZK中，但ZK是分布式协调工具，同时用来存储数据性能差，不适合进行频繁高并发读写操作，就出现了一个过渡方案，将offset放第三方，比如Redis/MySQL等
 
   现在Kafka自带了一个虚拟topic，将offset维护在其中
 
