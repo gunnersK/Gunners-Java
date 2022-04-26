@@ -8,21 +8,33 @@ Kafka本质上使用Java NIO的ByteBuffer保存消息，是紧凑的二进制字
 
 
 
+
+
+
+
+
+
 ## 集群管理
 
 Kafka通过zk实现分布式自动化服务发现与成员管理
 
 每台broker启动时会将自己注册到zk下的一个节点与zk临时节点
 
--   broker生命周期
+- broker生命周期
 
-    zk的临时节点与客户端会话绑定，客户端会话失效，节点自动清除
+  zk的临时节点与客户端会话绑定，客户端会话失效，节点自动清除
 
-    broker利用zk临时节点来管理生命周期，broker启动时会对应创建zk临时节点，同事创建监听器监听节点状态
+  broker利用zk临时节点来管理生命周期，broker启动时会对应创建zk临时节点，同事创建监听器监听节点状态
 
-    broker启动，监听器同步整个集群信息到该broker
+  broker启动，监听器同步整个集群信息到该broker
 
-    broker崩溃，与zk的会话失效，节点被删除，监听器处理broker崩溃的后续事宜
+  broker崩溃，与zk的会话失效，节点被删除，监听器处理broker崩溃的后续事宜
+
+
+
+
+
+
 
 
 
@@ -32,7 +44,7 @@ Kafka通过zk实现分布式自动化服务发现与成员管理
 
 ISR是topic分区维度的概念，每个topic分区都有自己的 ISR 列表，ISR本质是某个分区与leader**同步**的副本集合
 
-leader副本在ISR中，ISR中的副本才可选为leader，ISR所有副本接受到才视为提交
+leader副本在ISR中，ISR中的副本才可选为leader，消息被ISR所有副本接收到才视为提交
 
 - 位移信息
 
@@ -46,10 +58,36 @@ leader副本在ISR中，ISR中的副本才可选为leader，ISR所有副本接�
 
 同步/不同步的定义
 
-P190 follower副本延迟检测新版本优化
 
 
 
 
 
-P201 日志存储设计
+
+
+
+## 水印
+
+流式处理领域，水印表示时间，在Kafka中表示位置信息，即位移
+
+副本有三类：leader、follower、ISR副本集合
+
+消费者无法消费到leader上你位移大于HW水印的消息
+
+follower会有两套LEO，一套保存在follower上，一套保存在leader上，称为remote LEO
+
+LEO更新机制
+
+- follower -- 向leader FETCH到数据时
+- leader -- 将producer的数据落盘时
+
+HW更新机制
+
+- follower -- 更新LEO后，取当前LEO与FETCH响应中leader的HW的小者
+- leader -- 有4个时机（归纳），取所有满足条件的follower在leader的LEO与leader的LEO的小者
+
+follower的FETCH请求因为无数据而暂时被寄存到 leader端的 purgatroy中 ，超时强制完成。期间有数据会自动唤醒请求
+
+P193 图解原理 
+
+之后完整归纳副本、ISR、水印更新流程
