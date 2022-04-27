@@ -88,6 +88,18 @@ HW更新机制
 
 follower的FETCH请求因为无数据而暂时被寄存到 leader端的 purgatroy中 ，超时强制完成。期间有数据会自动唤醒请求
 
-P193 图解原理 
+leader的HW值是在第二轮FETCH中确定的，因为要比对follower的remote LEO
+
+水印备份机制有数据丢失、数据（顺序）不一致的缺陷，用leader epoch，即一对值（epoch，offset），来解决以上缺陷
+
+
+
+
+
+
+
+
+
+P199 新版本解决缺陷
 
 之后完整归纳副本、ISR、水印更新流程
