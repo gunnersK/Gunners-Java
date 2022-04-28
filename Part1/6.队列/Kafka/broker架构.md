@@ -90,9 +90,14 @@ follower的FETCH请求因为无数据而暂时被寄存到 leader端的 purgatro
 
 leader的HW值是在第二轮FETCH中确定的，因为要比对follower的remote LEO
 
-水印备份机制有数据丢失、数据（顺序）不一致的缺陷，用leader epoch，即一对值（epoch，offset），来解决以上缺陷
+水印备份机制有数据丢失、数据（顺序）不一致的缺陷，因为HW是异步延迟更新，**而且崩溃恢复之后会做日志截断**
 
+- 数据丢失 -- leader已更新HW=2，follower更新HW=2之前就宕机，故HW=1，重启后日志截断，发送FETCH之前leader宕机，则follower成为leader，原leader重启后成为follower，也做日志截断，则数据永远丢失
+- 数据不一致 -- leader已更新HW=2，follower未更新，HW=1，此时同时挂掉，follower先重启回来成为leader，收到新消息，此时HW=2，只有一节点，故分区HW=2，原leader重启回来，发现自身HW=2，分区HW=2，无需日志截断调整，导致两节点数据（顺序）不一致
 
+只要做日志截断丢数据后的follower成为leader，数据就永远丢失 
+
+用leader epoch，即一对值（epoch，offset），来解决以上缺陷。
 
 
 
