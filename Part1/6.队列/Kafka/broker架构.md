@@ -24,7 +24,7 @@ Kafka通过zk实现分布式自动化服务发现与成员管理
 
   zk的临时节点与客户端会话绑定，客户端会话失效，节点自动清除
 
-  broker利用zk临时节点来管理生命周期，broker启动时会对应创建zk临时节点，同事创建监听器监听节点状态
+  broker利用zk临时节点来管理生命周期，broker启动时会对应创建zk临时节点，同时创建监听器监听节点状态
 
   broker启动，监听器同步整个集群信息到该broker
 
@@ -42,7 +42,7 @@ Kafka通过zk实现分布式自动化服务发现与成员管理
 
 每个分区的数据做多份副本（备份），将副本分摊到所有broker上，follower从leader请求数据并做出响应
 
-ISR是topic分区维度的概念，每个topic分区都有自己的 ISR 列表，ISR本质是某个分区与leader**同步**的副本集合
+ISR是topic分区维度的概念，每个topic分区都有自己的 ISR 列表，ISR本质是?某个分区与leader**同步**的副本集合
 
 leader副本在ISR中，ISR中的副本才可选为leader，消息被ISR所有副本接收到才视为提交
 
@@ -78,7 +78,7 @@ follower会有两套LEO，一套保存在follower上，一套保存在leader上�
 
 LEO更新机制
 
-- follower -- 向leader FETCH到数据时
+- follower -- 向leader FETCH到数据落盘时
 - leader -- 将producer的数据落盘时
 
 HW更新机制
