@@ -4,8 +4,6 @@
 
 Kafka本质上使用Java NIO的ByteBuffer保存消息，是紧凑的二进制字节结构，无需padding对齐，省去很多空间，同时会使用文件系统的页缓存
 
-进度：6.1.2开始
-
 
 
 
@@ -30,6 +28,8 @@ Kafka通过zk实现分布式自动化服务发现与成员管理
 
   broker崩溃，与zk的会话失效，节点被删除，监听器处理broker崩溃的后续事宜
 
+书讲的太浅，深入了解需重新找资料
+
 
 
 
@@ -42,21 +42,51 @@ Kafka通过zk实现分布式自动化服务发现与成员管理
 
 每个分区的数据做多份副本（备份），将副本分摊到所有broker上，follower从leader请求数据并做出响应
 
-ISR是topic分区维度的概念，每个topic分区都有自己的 ISR 列表，ISR本质是?某个分区与leader**同步**的副本集合
+#### 位移信息
 
-leader副本在ISR中，ISR中的副本才可选为leader，消息被ISR所有副本接收到才视为提交
+- 起始位移 -- 该副本当前所含第一条消息的offset  
+- 高水印值HW -- 该副本最新一条**已提交**（并非已落盘）消息的offset，leader副本的HW决定了consumer能获取该分区消息的上限
+- 日志末端位移LEO -- 副本日志中下一条待写入消息的offset（消息落盘后LEO+1）
 
-- 位移信息
 
-  起始位移、高水印值、日志末端位移
 
-**对于一个参数的设置，有一点是很重要的：用户应该对他们知道的参数进行设置，而不是对他们需要进行猜测的参数进行设置。对于该参数来说，我们只能猜测应该设置成哪些值，而不是根据需要对其进行设置**  
+#### follower同步
+
+假设一个分区有三个副本，1个leader + 2个follower，数据同步过程大致如下：
+
+- leader收到producer发来的消息落盘，LEO+1
+- 两个follower发送请求给leader
+- leader将消息推送给follower
+- follower接收到消息落盘，各自LEO+1
+- leader接收到follower的数据请求响应后，更新HW，此时该消息对consumer可见
+
+*当producer的acks=-1，则需要做完以上操作，producer才能正常返回，才代表消息发送成功*
+
+具体数据备份详见下方 “水印-数据备份过程” 部分
 
 
 
 #### ISR设计
 
-同步/不同步的定义
+ISR是topic分区维度的概念，每个topic分区都有自己的 ISR 列表，ISR本质是某个分区与leader**同步**的副本集合
+
+leader副本在ISR中，ISR中的副本才可选为leader，消息被ISR所有副本接收到才视为提交
+
+所以最重要就是ISR成员的定义，即判定副本的同步/不同步状态
+
+##### 老版判定规则与缺陷
+
+0.9.0.0之前，用follower的LEO落后于leader的**消息数**（replica.lag.max.messages**全局**参数）来判定follower是否 ”不同步“
+
+当follower落后leader超过这个数则将其踢出ISR。但是这样相对死板，当瞬间接收一波高峰流量，远超这个数时，副本就会被认为不同步，被踢出ISR，尽管他是存活的，只能等下次请求加入ISR时追上leader的LEO，于是会出现同步、不同步、再同步，不停地加入退出ISR的情况
+
+**对于一个参数的设置，用户应该对他们知道的参数进行设置，而不是对他们需要进行猜测的参数进行设置。对于该参数来说，只能猜测应该设置成哪些值，无法根据需要对其进行设置**  
+
+
+
+##### 新版判定规则
+
+新版使用最大时间间隔（replica.lag.time.max.ms参数）来控制，默认10s，尽管follower的LEO落后于leader，只要不是持续性落后，就不会被踢出ISR，这样即使遇到流量高峰，也不会出现反复加入退出ISR的情况
 
 
 
@@ -72,23 +102,33 @@ leader副本在ISR中，ISR中的副本才可选为leader，消息被ISR所有�
 
 副本有三类：leader、follower、ISR副本集合
 
-消费者无法消费到leader上你位移大于HW水印的消息
+consumer无法消费到leader上你位移大于HW水印的消息
 
 follower会有两套LEO，一套保存在follower上，一套保存在leader上，称为remote LEO
 
-LEO更新机制
+#### LEO更新机制
 
 - follower -- 向leader FETCH到数据落盘时
 - leader -- 将producer的数据落盘时
 
-HW更新机制
+#### HW更新机制
 
 - follower -- 更新LEO后，取当前LEO与FETCH响应中leader的HW的小者
-- leader -- 有4个时机（归纳），取所有满足条件的follower在leader的LEO与leader的LEO的小者
+- leader -- 有4个时机，取所有满足条件的follower在leader的LEO与leader的LEO的小者
+  - 副本成为leader时
+  - broker崩溃导致副本被踢出ISR时
+  - producer向副本写入消息时
+  - leader处理follower的FETCH请求时
+
+
+
+#### 数据备份过程
 
 follower的FETCH请求因为无数据而暂时被寄存到 leader端的 purgatroy中 ，超时强制完成。期间有数据会自动唤醒请求
 
 leader的HW值是在第二轮FETCH中确定的，因为要比对follower的remote LEO
+
+##### 缺陷
 
 水印备份机制有数据丢失、数据（顺序）不一致的缺陷，因为HW是异步延迟更新，**而且崩溃恢复之后会做日志截断**
 
@@ -99,12 +139,10 @@ leader的HW值是在第二轮FETCH中确定的，因为要比对follower的remot
 
 用leader epoch，即一对值（epoch，offset），来解决以上缺陷。
 
+**没搞明白leader epoch工作原理**
+
+归纳数据备份过程，p193
 
 
 
 
-
-
-P199 新版本解决缺陷
-
-之后完整归纳副本、ISR、水印更新流程
