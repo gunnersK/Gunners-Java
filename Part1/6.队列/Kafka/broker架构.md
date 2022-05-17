@@ -45,7 +45,7 @@ Kafka通过zk实现分布式自动化服务发现与成员管理
 #### 位移信息
 
 - 起始位移 -- 该副本当前所含第一条消息的offset  
-- 高水印值HW -- 该副本最新一条**已提交**（并非已落盘）消息的offset，leader副本的HW决定了consumer能获取该分区消息的上限
+- 高水印值HW -- 该副本最新一条**已提交**消息的offset，leader副本的HW决定了consumer能获取该分区消息的上限
 - 日志末端位移LEO -- 副本日志中下一条待写入消息的offset（消息落盘后LEO+1）
 
 
@@ -57,7 +57,7 @@ Kafka通过zk实现分布式自动化服务发现与成员管理
 - leader收到producer发来的消息落盘，LEO+1
 - 两个follower发送请求给leader
 - leader将消息推送给follower
-- follower接收到消息落盘，各自LEO+1
+- follower接收到消息落盘，各自LEO+10
 - leader接收到follower的数据请求响应后，更新HW，此时该消息对consumer可见
 
 *当producer的acks=-1，则需要做完以上操作，producer才能正常返回，才代表消息发送成功*
@@ -124,6 +124,34 @@ follower会有两套LEO，一套保存在follower上，一套保存在leader上�
 
 #### 数据备份过程
 
+- 情况一：leader写入消息后，follower发送FETCH请求
+
+  > leader接收到消息后，将消息写入日志，更新leader的LEO
+  >
+  > leader尝试更新HW（符合更新HW的第3个时机）：取remote LEO（此时是0）与自己LEO的最小值，即是0，故不更新HW值
+  >
+  > 此时follower发来FETCH请求
+  >
+  > leader通过FETCH请求的offset确认是否需更新remote LEO，此时不需要
+  >
+  > leader尝试更新HW（符合更新HW的第4个时机）：比较自己LEO和remote LEO，还是0，不更新HW
+  >
+  > 将数据和当前分区HW（即leader HW）发送给follower
+  >
+  > follower接收到FETCH resp之后，将消息写入日志，更新follower LEO
+  >
+  > follower尝试更新HW：取自己LEO与resp中leader HW的最小值，即是0，故follower HW=0
+  >
+  > 此时follower发第二轮FETCH，leader收到后读取log数据，更新remote LEO=1（因为第二轮FETCH请求的offset是1，因为上一轮结束后 follower LEO 被更新为1）
+  >
+  > leader尝试更新HW：取remote LEO（此时是1）与自己LEO的最小值，即是1，故更新leader HW=1，即分区HW更新为1，自此该消息对消费者可见
+  >
+  > 接着leader把数据（此时无数据）和分区HW发送给follower
+  >
+  > follower接收到FETCH resp之后，尝试更新HW：取自己LEO与resp中leader HW的最小值，即是1，故更新follower HW=1
+  >
+  > 此时完成数据备份的完整过程
+
 follower的FETCH请求因为无数据而暂时被寄存到 leader端的 purgatroy中 ，超时强制完成。期间有数据会自动唤醒请求
 
 leader的HW值是在第二轮FETCH中确定的，因为要比对follower的remote LEO
@@ -141,7 +169,7 @@ leader的HW值是在第二轮FETCH中确定的，因为要比对follower的remot
 
 **没搞明白leader epoch工作原理**
 
-归纳数据备份过程，p193
+归纳数据备份过程情况2，p196
 
 
 
