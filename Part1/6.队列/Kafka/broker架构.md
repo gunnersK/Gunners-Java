@@ -156,6 +156,14 @@ follower的FETCH请求因为无数据而暂时被寄存到 leader端的 purgatro
 
 leader的HW值是在第二轮FETCH中确定的，因为要比对follower的remote LEO
 
+- 情况二：FETCH请求保存在purgatory中时生产者发来消息
+
+  > leader将消息写入本地log，更新LEO
+  >
+  > 唤醒purgatory中的FETCH请求，尝试更新HW
+  >
+  > 唤醒FETCH后的处理与第一种情况一致
+
 ##### 缺陷
 
 水印备份机制有数据丢失、数据（顺序）不一致的缺陷，因为HW是异步延迟更新，**而且崩溃恢复之后会做日志截断**
