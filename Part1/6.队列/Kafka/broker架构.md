@@ -232,3 +232,7 @@ leader的HW值是在第二轮FETCH中确定的，因为要比对follower的remot
 #### 日志campaction
 
 没看懂
+
+
+
+看完日志存储设计，接下来通信协议、controller、broker请求处理待理解
